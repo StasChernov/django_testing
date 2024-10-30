@@ -1,11 +1,11 @@
-import pytest
-
-
 from datetime import datetime, timedelta
+
 from django.conf import settings
 from django.test.client import Client
 from django.utils import timezone
 from django.urls import reverse
+import pytest
+
 from news.models import Comment, News
 
 
@@ -35,11 +35,10 @@ def not_author_client(not_author):
 
 @pytest.fixture
 def news():
-    note = News.objects.create(
+    return News.objects.create(
         title='Заголовок',
         text='Текст заметки',
     )
-    return note
 
 
 @pytest.fixture
@@ -73,23 +72,12 @@ def detail_url(news):
 
 
 @pytest.fixture
-def comment_text():
-    return 'Текст комментария'
-
-
-@pytest.fixture
-def new_comment_text():
-    return 'Обновлённый комментарий'
-
-
-@pytest.fixture
-def comment(author, news, comment_text):
-    comment = Comment.objects.create(
+def comment(author, news):
+    return Comment.objects.create(
         news=news,
         author=author,
-        text=comment_text
+        text='Текст комментария'
     )
-    return comment
 
 
 @pytest.fixture
@@ -119,9 +107,34 @@ def news_url(news):
 
 @pytest.fixture
 def url_to_comments(news_url):
-    return news_url + '#comments'
+    return f'{news_url}#comments'
 
 
 @pytest.fixture
 def edit_url(comment):
     return reverse('news:edit', args=(comment.id,))
+
+
+@pytest.fixture
+def home_url():
+    return reverse('news:home')
+
+
+@pytest.fixture
+def login_url():
+    return reverse('users:login')
+
+
+@pytest.fixture
+def logout_url():
+    return reverse('users:logout')
+
+
+@pytest.fixture
+def signup_url():
+    return reverse('users:signup')
+
+
+@pytest.fixture
+def signup_url():
+    return reverse('users:signup')

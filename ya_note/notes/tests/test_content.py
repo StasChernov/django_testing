@@ -1,12 +1,19 @@
 from notes.forms import NoteForm
-from notes.tests.constants import LIST_URL, ADD_URL, EDIT_URL, SetUp
+from notes.tests.config import LIST_URL, ADD_URL, EDIT_URL, Config
 
 
-class TestRoutes(SetUp):
+class TestRoutes(Config):
 
     def test_note_in_list_for_author(self):
         response = self.author_client.get(LIST_URL)
+        note_from_context = response.context['object_list'].get(
+            id=self.note.id
+        )
         self.assertIn(self.note, response.context['object_list'])
+        self.assertEqual(note_from_context.slug, self.note.slug)
+        self.assertEqual(note_from_context.text, self.note.text)
+        self.assertEqual(note_from_context.title, self.note.title)
+        self.assertEqual(note_from_context.author, self.note.author)
 
     def test_note_not_in_list_for_another_user(self):
         response = self.not_author_client.get(LIST_URL)

@@ -81,16 +81,6 @@ def comment(author, news):
 
 
 @pytest.fixture
-def form_data(comment_text):
-    return {'text': comment_text}
-
-
-@pytest.fixture
-def new_form_data(new_comment_text):
-    return {'text': new_comment_text}
-
-
-@pytest.fixture
 def delete_url(news, comment):
     return reverse('news:delete', args=(comment.id,))
 
@@ -138,3 +128,13 @@ def signup_url():
 @pytest.fixture
 def signup_url():
     return reverse('users:signup')
+
+
+@pytest.fixture
+def from_login_to_edit_url(login_url, edit_url):
+    return f'{login_url}?next={edit_url}'
+
+
+@pytest.fixture
+def from_login_to_delete_url(login_url, delete_url):
+    return f'{login_url}?next={delete_url}'

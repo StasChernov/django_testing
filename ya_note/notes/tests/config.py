@@ -16,12 +16,18 @@ LOGOUT_URL = reverse('users:logout')
 SIGNUP_URL = reverse('users:signup')
 DETAIL_URL = reverse('notes:detail', args=(SLUG,))
 DELETE_URL = reverse('notes:delete', args=(SLUG,))
+FROM_LOGIN_TO_LIST_URL = f'{LOGIN_URL}?next={LIST_URL}'
+FROM_LOGIN_TO_SUCCESS_URL = f'{LOGIN_URL}?next={SUCCESS_URL}'
+FROM_LOGIN_TO_ADD_URL = f'{LOGIN_URL}?next={ADD_URL}'
+FROM_LOGIN_TO_DETAIL_URL = f'{LOGIN_URL}?next={DETAIL_URL}'
+FROM_LOGIN_TO_EDIT_URL = f'{LOGIN_URL}?next={EDIT_URL}'
+FROM_LOGIN_TO_DELETE_URL = f'{LOGIN_URL}?next={DELETE_URL}'
 
 
 User = get_user_model()
 
 
-class SetUp(TestCase):
+class Config(TestCase):
 
     @classmethod
     def setUpTestData(cls):

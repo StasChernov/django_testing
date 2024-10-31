@@ -11,6 +11,9 @@ SIGNUP_URL = pytest.lazy_fixture('signup_url')
 EDIT_URL = pytest.lazy_fixture('edit_url')
 DELETE_URL = pytest.lazy_fixture('delete_url')
 DETAIL_URL = pytest.lazy_fixture('detail_url')
+ANON_CLIENT = pytest.lazy_fixture('client')
+FROM_LOGIN_TO_EDIT_URL = pytest.lazy_fixture('from_login_to_edit_url')
+FROM_LOGIN_TO_DELETE_URL = pytest.lazy_fixture('from_login_to_delete_url')
 
 
 pytestmark = pytest.mark.django_db
@@ -18,11 +21,13 @@ pytestmark = pytest.mark.django_db
 
 @pytest.mark.parametrize(
     'url, parametrized_client, expected_status', (
-        (HOME_URL, pytest.lazy_fixture('client'), HTTPStatus.OK),
-        (LOGIN_URL, pytest.lazy_fixture('client'), HTTPStatus.OK),
-        (LOGOUT_URL, pytest.lazy_fixture('client'), HTTPStatus.OK),
-        (SIGNUP_URL, pytest.lazy_fixture('client'), HTTPStatus.OK),
-        (DETAIL_URL, pytest.lazy_fixture('client'), HTTPStatus.OK), (
+        (HOME_URL, ANON_CLIENT, HTTPStatus.OK),
+        (LOGIN_URL, ANON_CLIENT, HTTPStatus.OK),
+        (LOGOUT_URL, ANON_CLIENT, HTTPStatus.OK),
+        (SIGNUP_URL, ANON_CLIENT, HTTPStatus.OK),
+        (DETAIL_URL, ANON_CLIENT, HTTPStatus.OK),
+        (DELETE_URL, ANON_CLIENT, HTTPStatus.FOUND),
+        (EDIT_URL, ANON_CLIENT, HTTPStatus.FOUND), (
             DELETE_URL,
             pytest.lazy_fixture('not_author_client'),
             HTTPStatus.NOT_FOUND
@@ -46,8 +51,10 @@ def test_pages_availability(url, parametrized_client, expected_status):
 
 
 @pytest.mark.parametrize(
-    'name',
-    (EDIT_URL, DELETE_URL),
+    'url, redirect_url', (
+        (EDIT_URL, FROM_LOGIN_TO_EDIT_URL),
+        (DELETE_URL, FROM_LOGIN_TO_DELETE_URL)
+    )
 )
-def test_redirects(client, name, login_url):
-    assertRedirects(client.get(name), f'{login_url}?next={name}')
+def test_redirects(client, url, redirect_url):
+    assertRedirects(client.get(url), redirect_url)

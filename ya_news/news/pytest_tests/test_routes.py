@@ -12,6 +12,8 @@ EDIT_URL = pytest.lazy_fixture('edit_url')
 DELETE_URL = pytest.lazy_fixture('delete_url')
 DETAIL_URL = pytest.lazy_fixture('detail_url')
 ANON_CLIENT = pytest.lazy_fixture('client')
+NOT_AUTHOR_CLIENT = pytest.lazy_fixture('not_author_client')
+AUTHOR_CLIENT = pytest.lazy_fixture('author_client')
 FROM_LOGIN_TO_EDIT_URL = pytest.lazy_fixture('from_login_to_edit_url')
 FROM_LOGIN_TO_DELETE_URL = pytest.lazy_fixture('from_login_to_delete_url')
 
@@ -27,23 +29,11 @@ pytestmark = pytest.mark.django_db
         (SIGNUP_URL, ANON_CLIENT, HTTPStatus.OK),
         (DETAIL_URL, ANON_CLIENT, HTTPStatus.OK),
         (DELETE_URL, ANON_CLIENT, HTTPStatus.FOUND),
-        (EDIT_URL, ANON_CLIENT, HTTPStatus.FOUND), (
-            DELETE_URL,
-            pytest.lazy_fixture('not_author_client'),
-            HTTPStatus.NOT_FOUND
-        ), (
-            DELETE_URL,
-            pytest.lazy_fixture('author_client'),
-            HTTPStatus.OK
-        ), (
-            EDIT_URL,
-            pytest.lazy_fixture('not_author_client'),
-            HTTPStatus.NOT_FOUND
-        ), (
-            EDIT_URL,
-            pytest.lazy_fixture('author_client'),
-            HTTPStatus.OK
-        ),
+        (EDIT_URL, ANON_CLIENT, HTTPStatus.FOUND),
+        (DELETE_URL, NOT_AUTHOR_CLIENT, HTTPStatus.NOT_FOUND),
+        (DELETE_URL, AUTHOR_CLIENT, HTTPStatus.OK),
+        (EDIT_URL, NOT_AUTHOR_CLIENT, HTTPStatus.NOT_FOUND),
+        (EDIT_URL, AUTHOR_CLIENT, HTTPStatus.OK),
     ),
 )
 def test_pages_availability(url, parametrized_client, expected_status):

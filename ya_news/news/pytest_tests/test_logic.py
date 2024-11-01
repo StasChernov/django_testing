@@ -7,9 +7,6 @@ from news.forms import BAD_WORDS, WARNING
 from news.models import Comment
 
 
-FORM_DATA = {
-    'text': 'Текст комментария'
-}
 NEW_FORM_DATA = {
     'text': 'Обновлеленный комментарий'
 }
@@ -21,8 +18,13 @@ bad_texts = [{
 pytestmark = pytest.mark.django_db
 
 
-def test_anonymous_user_cant_create_comment(client, detail_url):
-    client.post(detail_url, data=FORM_DATA)
+def test_anonymous_user_cant_create_comment(
+    client,
+    detail_url,
+    comment
+):
+    Comment.objects.all().delete()
+    client.post(detail_url, data={'text': comment.text})
     comments_count = Comment.objects.count()
     assert comments_count == 0
 
@@ -32,15 +34,17 @@ def test_user_can_create_comment(
     news,
     author_client,
     detail_url,
-    url_to_comments
+    url_to_comments,
+    comment
 ):
-    response = author_client.post(detail_url, data=FORM_DATA)
+    Comment.objects.all().delete()
+    response = author_client.post(detail_url, data={'text': comment.text})
     assertRedirects(response, url_to_comments)
     assert Comment.objects.count() == 1
-    comment = Comment.objects.get()
-    assert comment.text == FORM_DATA['text']
-    assert comment.news == news
-    assert comment.author == author
+    comment_from_db = Comment.objects.get()
+    assert comment_from_db.text == comment.text
+    assert comment_from_db.news == comment.news
+    assert comment_from_db.author == comment.author
 
 
 @pytest.mark.parametrize(
@@ -75,9 +79,8 @@ def test_user_cant_delete_comment_of_another_user(
 ):
     response = not_author_client.delete(delete_url)
     assert response.status_code == HTTPStatus.NOT_FOUND
-    comments_count = Comment.objects.count()
-    assert comments_count == 1
-    assert comment in Comment.objects.all()
+    assert Comment.objects.count() == 1
+    assert Comment.objects.filter(id=comment.id).exists() is True
 
 
 def test_author_can_edit_comment(
@@ -88,8 +91,10 @@ def test_author_can_edit_comment(
 ):
     response = author_client.post(edit_url, data=NEW_FORM_DATA)
     assertRedirects(response, url_to_comments)
-    comment = Comment.objects.get(id=comment.id)
-    assert comment.text == NEW_FORM_DATA['text']
+    comment_from_db = Comment.objects.get(id=comment.id)
+    assert comment_from_db.text == NEW_FORM_DATA['text']
+    assert comment_from_db.author == comment.author
+    assert comment_from_db.news == comment.news
 
 
 def test_user_cant_edit_comment_of_another_user(
@@ -99,5 +104,7 @@ def test_user_cant_edit_comment_of_another_user(
 ):
     response = not_author_client.post(edit_url, data=NEW_FORM_DATA)
     assert response.status_code == HTTPStatus.NOT_FOUND
-    comment = Comment.objects.get(id=comment.id)
-    assert comment.text == FORM_DATA['text']
+    comment_from_db = Comment.objects.get(id=comment.id)
+    assert comment_from_db.text == comment.text
+    assert comment_from_db.author == comment.author
+    assert comment_from_db.news == comment.news

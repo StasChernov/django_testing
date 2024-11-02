@@ -66,6 +66,7 @@ class TestLogic(Config):
         self.assertEqual(note.slug, expected_slug)
         self.assertEqual(note.text, self.form_data['text'])
         self.assertEqual(note.title, self.form_data['title'])
+        self.assertEqual(note.author, self.author)
 
     def test_author_can_edit_note(self):
         response = self.author_client.post(EDIT_URL, self.form_data)
@@ -74,7 +75,7 @@ class TestLogic(Config):
         self.assertEqual(note.title, self.form_data['title'])
         self.assertEqual(note.text, self.form_data['text'])
         self.assertEqual(note.slug, self.form_data['slug'])
-        self.assertEqual(note.author, self.author)
+        self.assertEqual(note.author, self.note.author)
 
     def test_other_user_cant_edit_note(self):
         response = self.not_author_client.post(EDIT_URL, self.form_data)
@@ -86,14 +87,16 @@ class TestLogic(Config):
         self.assertEqual(self.note.author, note.author)
 
     def test_author_can_delete_note(self):
+        expected_count = Note.objects.count() - 1
         response = self.author_client.post(DELETE_URL)
         self.assertRedirects(response, SUCCESS_URL)
-        self.assertEqual(Note.objects.count(), 0)
+        self.assertEqual(Note.objects.count(), expected_count)
         self.assertFalse(Note.objects.filter(id=self.note.id).exists())
 
     def test_other_user_cant_delete_note(self):
         response = self.not_author_client.post(DELETE_URL)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.assertTrue(Note.objects.filter(id=self.note.id).exists())
         note = Note.objects.get(id=self.note.id)
         self.assertEqual(self.note.title, note.title)
         self.assertEqual(self.note.text, note.text)
